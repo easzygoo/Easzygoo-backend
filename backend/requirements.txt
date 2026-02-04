@@ -1,0 +1,25 @@
+# Core
+Django>=5.0,<6.0
+
+djangorestframework>=3.15,<4.0
+
+djangorestframework-simplejwt>=5.3,<6.0
+
+dj-database-url>=2.2,<3.0
+python-dotenv>=1.0,<2.0
+
+# Production WSGI + static files
+gunicorn>=21.2,<23.0
+whitenoise>=6.6,<7.0
+
+# PostgreSQL driver
+psycopg2-binary>=2.9,<3.0
+
+# Uploads (ImageField)
+Pillow>=10.0,<12.0
+
+# Cross-origin (mobile/web clients)
+django-cors-headers>=4.3,<5.0
+
+# Supabase Storage client (private bucket + signed URLs)
+supabase>=2.0,<3.0
