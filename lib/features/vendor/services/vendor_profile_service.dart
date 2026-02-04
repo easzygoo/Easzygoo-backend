@@ -1,0 +1,57 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../../../core/network/api_client.dart';
+import '../api/vendor_api.dart';
+import '../models/vendor_profile.dart';
+
+class VendorProfileService {
+  VendorProfileService({required ApiClient apiClient}) : _api = apiClient;
+
+  final ApiClient _api;
+
+  Future<VendorProfile> fetchProfile() async {
+    final http.Response response = await _api.get(VendorApi.vendorsMe);
+    if (response.statusCode != 200) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: _extractMessage(response) ?? 'Failed to load profile',
+        details: response.body,
+      );
+    }
+
+    final Object? data = await _api.decodeData(response);
+    final Map<String, dynamic> json = (data as Map).cast<String, dynamic>();
+    return VendorProfile.fromJson(json);
+  }
+
+  Future<bool> toggleOpen() async {
+    final http.Response response = await _api.postJson(VendorApi.vendorsToggleOpen);
+    if (response.statusCode != 200) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: _extractMessage(response) ?? 'Failed to toggle shop',
+        details: response.body,
+      );
+    }
+
+    final Object? data = await _api.decodeData(response);
+    final Map<String, dynamic> json = (data as Map).cast<String, dynamic>();
+    return (json['is_open'] as bool?) ?? false;
+  }
+
+  String? _extractMessage(http.Response response) {
+    if (response.body.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        final error = decoded['error'];
+        if (error is String && error.isNotEmpty) return error;
+        final detail = decoded['detail'];
+        if (detail is String && detail.isNotEmpty) return detail;
+      }
+    } catch (_) {}
+    return null;
+  }
+}

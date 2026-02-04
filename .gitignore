@@ -1,4 +1,7 @@
+# Environment
 .env
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -15,8 +18,11 @@ venv/
 .venv/
 
 # IDE
+*.iml
+*.ipr
+*.iws
 .idea/
-.vscode/
+#.vscode/
 
 # OS
 .DS_Store
@@ -26,3 +32,46 @@ venv/
 .mypy_cache/
 ruff_cache/
 coverage*
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Miscellaneous
+*.class
+*.swp
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Django backend (local dev)
+/backend/.env
+/backend/db.sqlite3
+/backend/media/
+/backend/staticfiles/
+/backend/__pycache__/
+/backend/*/__pycache__/
+/backend/.venv/
+/backend/.git/
+/backend/.git.backup/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
