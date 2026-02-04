@@ -1,0 +1,28 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Virtual environments
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Tests / tooling caches
+.pytest_cache/
+.mypy_cache/
+ruff_cache/
+coverage*
