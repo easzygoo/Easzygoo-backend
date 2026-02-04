@@ -5,8 +5,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from .health import healthcheck
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/health/", healthcheck),
     path("api/auth/", include("users.urls")),
     path("api/", include("riders.urls")),
     path("api/", include("orders.urls")),
