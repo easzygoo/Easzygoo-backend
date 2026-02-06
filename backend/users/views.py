@@ -18,9 +18,15 @@ class PhoneLoginView(APIView):
 
         phone = serializer.validated_data["phone"]
         otp = serializer.validated_data["otp"]
+        role = serializer.validated_data.get("role")
 
         try:
-            result = login_with_phone(phone=phone, otp=otp)
+            result = login_with_phone(
+                phone=phone,
+                otp=otp,
+                name_if_create="Vendor" if role == "vendor" else None,
+                role_if_create=role or "rider",
+            )
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

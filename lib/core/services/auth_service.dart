@@ -30,12 +30,13 @@ class AuthService {
   final ApiClient _api;
   final FlutterSecureStorage _storage;
 
-  Future<LoginResult> login({required String phone, required String otp}) async {
+  Future<LoginResult> login({required String phone, required String otp, String? role}) async {
     final http.Response response = await _api.postJson(
       ApiConstants.authLogin,
       body: {
         'phone': phone,
         'otp': otp,
+        if (role != null && role.trim().isNotEmpty) 'role': role.trim(),
       },
     );
 

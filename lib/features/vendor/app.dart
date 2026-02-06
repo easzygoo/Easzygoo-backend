@@ -198,6 +198,7 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
       final result = await widget.authService.login(
         phone: _phoneController.text.trim(),
         otp: otp,
+        role: 'vendor',
       );
 
       final role = (result.user['role'] as String?) ?? '';

@@ -15,6 +15,7 @@ class UserMeSerializer(serializers.ModelSerializer):
 class PhoneLoginSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
     otp = serializers.CharField(max_length=10)
+    role = serializers.ChoiceField(choices=User.Role.choices, required=False)
 
     def validate_phone(self, value: str) -> str:
         v = value.strip()

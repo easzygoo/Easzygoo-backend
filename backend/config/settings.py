@@ -24,7 +24,14 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or os.getenv("SECRET_KEY") or "dev-i
 DEBUG = _env_bool("DJANGO_DEBUG", default=_env_bool("DEBUG", default=False))
 
 _allowed_hosts_raw = os.getenv("DJANGO_ALLOWED_HOSTS") or os.getenv("ALLOWED_HOSTS") or "localhost,127.0.0.1"
-ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_raw.split(",") if h.strip()]
+
+# Local dev convenience: when DEBUG is enabled and no explicit hosts are set,
+# allow all hosts so Android devices on LAN can reach the server.
+_using_default_allowed_hosts = _allowed_hosts_raw.strip() == "localhost,127.0.0.1"
+if DEBUG and _using_default_allowed_hosts:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_raw.split(",") if h.strip()]
 
 INSTALLED_APPS = [
     # Django
