@@ -9,9 +9,11 @@ from django.db import transaction
 from orders.models import Order, OrderItem
 from products.models import Product
 from users.models import User
+from users.models import Address
 from vendors.models import Vendor
 
 from .rider_assignment_service import assign_rider_to_order
+from .order_access_service import cache_order_access_from_instance
 
 
 @dataclass(frozen=True)
@@ -21,7 +23,14 @@ class OrderItemInput:
 
 
 @transaction.atomic
-def place_order_for_customer(*, customer: User, vendor: Vendor, items: Iterable[OrderItemInput]) -> Order:
+def place_order_for_customer(
+    *,
+    customer: User,
+    vendor: Vendor,
+    items: Iterable[OrderItemInput],
+    delivery_address: Address | None = None,
+    payment_method: str = Order.PaymentMethod.COD,
+) -> Order:
     """Create an order and assign a rider (best-effort) inside one transaction."""
 
     items_list = list(items)
@@ -70,8 +79,11 @@ def place_order_for_customer(*, customer: User, vendor: Vendor, items: Iterable[
     order = Order.objects.create(
         customer=customer,
         vendor=vendor,
+        delivery_address=delivery_address,
         status=Order.Status.PLACED,
         total_amount=total_amount,
+        payment_method=payment_method,
+        payment_status=Order.PaymentStatus.PENDING,
     )
 
     for oi in order_items:
@@ -87,5 +99,10 @@ def place_order_for_customer(*, customer: User, vendor: Vendor, items: Iterable[
 
     # Best-effort assignment (leaves order.rider null if none).
     assign_rider_to_order(order)
+
+    # Cache access metadata for websocket authorization (cache-first; avoids consumer DB hits).
+    # Ensure vendor.user is available (Vendor instance is already present here).
+    order.vendor = vendor
+    cache_order_access_from_instance(order=order)
 
     return order

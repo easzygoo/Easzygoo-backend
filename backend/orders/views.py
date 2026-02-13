@@ -9,9 +9,11 @@ from riders.services.rider_service import get_or_create_rider_for_user
 from users.permissions import IsCustomer, IsRider
 from vendors.permissions import IsVendor
 from vendors.models import Vendor
+from users.models import Address
 
 from .models import Order
 from .serializers import EarningsSummarySerializer, OrderCreateSerializer, OrderSerializer
+from .services.customer_order_service import get_customer_order, list_customer_orders
 from .services.order_creation_service import OrderItemInput, place_order_for_customer
 from .services.order_service import accept_order, earnings_summary, get_assigned_active_order, mark_delivered, mark_picked
 from .services.vendor_order_service import (
@@ -151,18 +153,41 @@ class OrderViewSet(viewsets.ViewSet):
 class CustomerOrderViewSet(viewsets.ViewSet):
     permission_classes = [IsCustomer]
 
+    def list(self, request):
+        qs = list_customer_orders(customer=request.user)
+        return Response(OrderSerializer(qs, many=True).data)
+
+    def retrieve(self, request, pk=None):
+        try:
+            order = get_customer_order(customer=request.user, order_id=pk)
+        except Order.DoesNotExist:
+            return Response({"detail": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(OrderSerializer(order).data)
+
     def create(self, request):
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         vendor = get_object_or_404(Vendor, pk=serializer.validated_data["vendor_id"])
+        address = None
+        address_id = serializer.validated_data.get("address_id")
+        if address_id is not None:
+            address = get_object_or_404(Address, pk=address_id, user=request.user)
+
+        payment_method = serializer.validated_data.get("payment_method") or Order.PaymentMethod.COD
         items = [
             OrderItemInput(product_id=str(i["product_id"]), quantity=i["quantity"])
             for i in serializer.validated_data["items"]
         ]
 
         try:
-            order = place_order_for_customer(customer=request.user, vendor=vendor, items=items)
+            order = place_order_for_customer(
+                customer=request.user,
+                vendor=vendor,
+                items=items,
+                delivery_address=address,
+                payment_method=payment_method,
+            )
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

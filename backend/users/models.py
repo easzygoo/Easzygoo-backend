@@ -32,3 +32,26 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return f"{self.phone} ({self.role})"
+
+
+class Address(models.Model):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="addresses")
+
+    label = models.CharField(max_length=60, blank=True, default="")
+    receiver_name = models.CharField(max_length=120, blank=True, default="")
+    receiver_phone = models.CharField(max_length=20, blank=True, default="")
+
+    line1 = models.CharField(max_length=255)
+    line2 = models.CharField(max_length=255, blank=True, default="")
+    landmark = models.CharField(max_length=255, blank=True, default="")
+    city = models.CharField(max_length=120)
+    state = models.CharField(max_length=120)
+    pincode = models.CharField(max_length=12)
+
+    is_default = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"Address({self.id})"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import APIView
 
 from .serializers import PhoneLoginSerializer, UserMeSerializer
@@ -11,6 +12,7 @@ from .services.auth_service import login_with_phone
 
 class PhoneLoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
 
     def post(self, request):
         serializer = PhoneLoginSerializer(data=request.data)

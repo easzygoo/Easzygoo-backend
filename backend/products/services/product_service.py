@@ -43,3 +43,11 @@ def update_vendor_product(*, user, product_id, **fields) -> Product:
 def delete_vendor_product(*, user, product_id) -> None:
     product = get_vendor_product(user=user, product_id=product_id)
     product.delete()
+
+
+def list_public_products():
+    return Product.objects.filter(is_active=True).order_by("name")
+
+
+def get_public_product(*, product_id) -> Product:
+    return Product.objects.get(pk=product_id, is_active=True)

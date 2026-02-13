@@ -40,8 +40,12 @@ class OrderModel {
   final int vendorId;
   final String vendorName;
   final int? riderId;
+  final int? deliveryAddressId;
+  final OrderDeliveryAddress? deliveryAddress;
   final String status;
   final double totalAmount;
+  final String paymentMethod;
+  final String paymentStatus;
   final String createdAt;
   final String updatedAt;
   final List<OrderItem> items;
@@ -52,8 +56,12 @@ class OrderModel {
     required this.vendorId,
     required this.vendorName,
     required this.riderId,
+    required this.deliveryAddressId,
+    required this.deliveryAddress,
     required this.status,
     required this.totalAmount,
+    required this.paymentMethod,
+    required this.paymentStatus,
     required this.createdAt,
     required this.updatedAt,
     required this.items,
@@ -67,14 +75,25 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final rawItems = (json['items'] as List?) ?? const [];
+
+    final rawAddress = json['delivery_address'];
+    OrderDeliveryAddress? address;
+    if (rawAddress is Map) {
+      address = OrderDeliveryAddress.fromJson(rawAddress.cast<String, dynamic>());
+    }
+
     return OrderModel(
       id: (json['id'] ?? '').toString(),
       customerId: (json['customer_id'] ?? '').toString(),
       vendorId: (json['vendor_id'] as num?)?.toInt() ?? 0,
       vendorName: (json['vendor_name'] ?? '').toString(),
       riderId: (json['rider_id'] as num?)?.toInt(),
+      deliveryAddressId: (json['delivery_address_id'] as num?)?.toInt(),
+      deliveryAddress: address,
       status: (json['status'] ?? '').toString(),
       totalAmount: _toDouble(json['total_amount']),
+      paymentMethod: (json['payment_method'] ?? '').toString(),
+      paymentStatus: (json['payment_status'] ?? '').toString(),
       createdAt: (json['created_at'] ?? '').toString(),
       updatedAt: (json['updated_at'] ?? '').toString(),
       items: rawItems
@@ -82,6 +101,55 @@ class OrderModel {
           .map((e) => OrderItem.fromJson(e.cast<String, dynamic>()))
           .toList(growable: false),
     );
+  }
+}
+
+class OrderDeliveryAddress {
+  final int id;
+  final String label;
+  final String receiverName;
+  final String receiverPhone;
+  final String line1;
+  final String line2;
+  final String landmark;
+  final String city;
+  final String state;
+  final String pincode;
+
+  OrderDeliveryAddress({
+    required this.id,
+    required this.label,
+    required this.receiverName,
+    required this.receiverPhone,
+    required this.line1,
+    required this.line2,
+    required this.landmark,
+    required this.city,
+    required this.state,
+    required this.pincode,
+  });
+
+  factory OrderDeliveryAddress.fromJson(Map<String, dynamic> json) {
+    return OrderDeliveryAddress(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      label: (json['label'] ?? '').toString(),
+      receiverName: (json['receiver_name'] ?? '').toString(),
+      receiverPhone: (json['receiver_phone'] ?? '').toString(),
+      line1: (json['line1'] ?? '').toString(),
+      line2: (json['line2'] ?? '').toString(),
+      landmark: (json['landmark'] ?? '').toString(),
+      city: (json['city'] ?? '').toString(),
+      state: (json['state'] ?? '').toString(),
+      pincode: (json['pincode'] ?? '').toString(),
+    );
+  }
+
+  String get summary {
+    final parts = <String>[];
+    if (line1.isNotEmpty) parts.add(line1);
+    if (city.isNotEmpty) parts.add(city);
+    if (pincode.isNotEmpty) parts.add(pincode);
+    return parts.join(', ');
   }
 }
 

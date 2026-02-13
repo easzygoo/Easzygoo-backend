@@ -21,5 +21,9 @@ Pillow>=10.0,<12.0
 # Cross-origin (mobile/web clients)
 django-cors-headers>=4.3,<5.0
 
+# Realtime (WebSockets)
+channels>=4.0,<5.0
+channels-redis>=4.2,<5.0
+
 # Supabase Storage client (private bucket + signed URLs)
 supabase>=2.0,<3.0

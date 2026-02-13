@@ -6,7 +6,10 @@ from django.db import transaction
 from django.db.models import Sum
 
 from orders.models import Order
+from ws_realtime.services.order_events import emit_order_event
 from riders.models import Rider
+
+from .order_access_service import cache_order_access_from_instance
 
 
 ACTIVE_STATUSES = {
@@ -35,6 +38,19 @@ def accept_order(*, rider: Rider, order: Order) -> Order:
     order.rider = rider
     order.status = Order.Status.ACCEPTED
     order.save(update_fields=["rider", "status", "updated_at"])
+
+    # Ensure order.rider.user is available for caching.
+    order.rider = rider
+    cache_order_access_from_instance(order=order)
+
+    emit_order_event(
+        order_id=str(order.id),
+        name="order_accepted",
+        payload={
+            "status": order.status,
+            "rider_id": str(rider.id),
+        },
+    )
     return order
 
 
@@ -47,6 +63,18 @@ def mark_picked(*, rider: Rider, order: Order) -> Order:
 
     order.status = Order.Status.PICKED
     order.save(update_fields=["status", "updated_at"])
+
+    order.rider = rider
+    cache_order_access_from_instance(order=order)
+
+    emit_order_event(
+        order_id=str(order.id),
+        name="order_picked",
+        payload={
+            "status": order.status,
+            "rider_id": str(rider.id),
+        },
+    )
     return order
 
 
@@ -59,6 +87,18 @@ def mark_delivered(*, rider: Rider, order: Order) -> Order:
 
     order.status = Order.Status.DELIVERED
     order.save(update_fields=["status", "updated_at"])
+
+    order.rider = rider
+    cache_order_access_from_instance(order=order)
+
+    emit_order_event(
+        order_id=str(order.id),
+        name="order_delivered",
+        payload={
+            "status": order.status,
+            "rider_id": str(rider.id),
+        },
+    )
     return order
 
 

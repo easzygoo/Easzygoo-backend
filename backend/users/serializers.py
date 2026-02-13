@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import User
+from .models import Address, User
 
 
 class UserMeSerializer(serializers.ModelSerializer):
@@ -22,3 +22,24 @@ class PhoneLoginSerializer(serializers.Serializer):
         if len(v) < 8:
             raise serializers.ValidationError("Enter a valid phone number")
         return v
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = (
+            "id",
+            "label",
+            "receiver_name",
+            "receiver_phone",
+            "line1",
+            "line2",
+            "landmark",
+            "city",
+            "state",
+            "pincode",
+            "is_default",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "created_at", "updated_at")

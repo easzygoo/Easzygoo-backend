@@ -38,18 +38,34 @@ class ApiConstants {
   // Auth
   // -----------------
   static const String authLogin = '$apiPrefix/auth/login/';
+    static const String authMe = '$apiPrefix/auth/me/';
 
   // -----------------
   // Riders
   // -----------------
   static const String ridersMe = '$apiPrefix/riders/me/';
   static const String ridersToggleOnline = '$apiPrefix/riders/toggle-online/';
-  static const String ridersUpdateLocation = '$apiPrefix/riders/update-location/';
+  static const String ridersUpdateLocation =
+      '$apiPrefix/riders/update-location/';
 
   // -----------------
   // Orders
   // -----------------
-  static const String ordersAssignedActive = '$apiPrefix/orders/assigned-active/';
+  static const String ordersAssignedActive =
+      '$apiPrefix/orders/assigned-active/';
+
+  /// Customer order history + order placement.
+  static const String customerOrders = '$apiPrefix/customer/orders/';
+
+    static String customerOrderDetail(String id) => '$customerOrders$id/';
+
+    /// Customer saved addresses.
+    static const String customerAddresses = '$apiPrefix/customer/addresses/';
+
+    static String customerAddressDetail(int id) => '$customerAddresses$id/';
+
+    static String customerAddressSetDefault(int id) =>
+        '${customerAddressDetail(id)}set-default/';
 
   /// Path template: `/api/orders/<id>/accept/`
   static String orderAccept(String id) => '$apiPrefix/orders/$id/accept/';
@@ -58,9 +74,11 @@ class ApiConstants {
   static String orderMarkPicked(String id) => '$apiPrefix/orders/$id/picked/';
 
   /// Path template: `/api/orders/<id>/delivered/`
-  static String orderMarkDelivered(String id) => '$apiPrefix/orders/$id/delivered/';
+  static String orderMarkDelivered(String id) =>
+      '$apiPrefix/orders/$id/delivered/';
 
-  static const String ordersEarningsSummary = '$apiPrefix/orders/earnings-summary/';
+  static const String ordersEarningsSummary =
+      '$apiPrefix/orders/earnings-summary/';
 
   // -----------------
   // KYC
@@ -68,6 +86,12 @@ class ApiConstants {
   static const String kycSubmit = '$apiPrefix/kyc/submit/';
   static const String kycStatus = '$apiPrefix/kyc/status/';
 
+  // -----------------
+  // Catalog (Customer)
+  // -----------------
+  static const String catalogProducts = '$apiPrefix/catalog/products/';
+
   /// Path template: `/api/kyc/view/<document_type>/`
-  static String kycViewDocument(String documentType) => '$apiPrefix/kyc/view/$documentType/';
+  static String kycViewDocument(String documentType) =>
+      '$apiPrefix/kyc/view/$documentType/';
 }

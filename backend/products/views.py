@@ -2,15 +2,18 @@ from __future__ import annotations
 
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from vendors.permissions import IsVendor
 
-from .serializers import ProductSerializer, ProductWriteSerializer
+from .serializers import CatalogProductSerializer, ProductSerializer, ProductWriteSerializer
 from .services.product_service import (
     create_vendor_product,
     delete_vendor_product,
+    get_public_product,
     get_vendor_product,
+    list_public_products,
     list_vendor_products,
     update_vendor_product,
 )
@@ -99,3 +102,18 @@ class VendorProductViewSet(viewsets.ViewSet):
         except ObjectDoesNotExist:
             return _error("Product not found", http_status=status.HTTP_404_NOT_FOUND)
         return _success({"deleted": True})
+
+
+class CatalogProductViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def list(self, request):
+        qs = list_public_products()
+        return _success(CatalogProductSerializer(qs, many=True).data)
+
+    def retrieve(self, request, pk=None):
+        try:
+            product = get_public_product(product_id=pk)
+        except ObjectDoesNotExist:
+            return _error("Product not found", http_status=status.HTTP_404_NOT_FOUND)
+        return _success(CatalogProductSerializer(product).data)
