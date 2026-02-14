@@ -26,9 +26,11 @@ def get_or_cache_order_access(*, order_id: str) -> dict:
     if order.rider_id and order.rider:
         rider_user_id = str(order.rider.user_id)
 
+    vendor_user_id = str(order.vendor.user_id) if getattr(order, "vendor", None) else ""
+
     access = {
         "customer_id": str(order.customer_id),
-        "vendor_user_id": str(order.vendor.user_id),
+        "vendor_user_id": vendor_user_id,
         "rider_user_id": rider_user_id,
     }
 

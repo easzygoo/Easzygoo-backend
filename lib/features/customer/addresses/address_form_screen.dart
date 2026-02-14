@@ -133,17 +133,17 @@ class _CustomerAddressFormScreenState extends State<CustomerAddressFormScreen> {
         p.subAdministrativeArea,
       ]);
 
-      if (line1.isNotEmpty) _line1.text = line1;
+      if (_line1.text.trim().isEmpty && line1.isNotEmpty) _line1.text = line1;
       if (_line2.text.trim().isEmpty && line2.isNotEmpty) _line2.text = line2;
 
       final city = (p.locality ?? p.subAdministrativeArea ?? '').trim();
-      if (city.isNotEmpty) _city.text = city;
+      if (_city.text.trim().isEmpty && city.isNotEmpty) _city.text = city;
 
       final state = (p.administrativeArea ?? '').trim();
-      if (state.isNotEmpty) _state.text = state;
+      if (_state.text.trim().isEmpty && state.isNotEmpty) _state.text = state;
 
       final pincode = (p.postalCode ?? '').trim();
-      if (pincode.isNotEmpty) _pincode.text = pincode;
+      if (_pincode.text.trim().isEmpty && pincode.isNotEmpty) _pincode.text = pincode;
 
       if (_landmark.text.trim().isEmpty) {
         final landmark = _joinParts([

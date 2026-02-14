@@ -45,8 +45,11 @@ class CustomerOrderService {
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return OrderModel.fromJson(decoded);
+    final raw = jsonDecode(response.body);
+    if (raw is Map<String, dynamic>) {
+      return OrderModel.fromJson(raw);
+    }
+    throw const FormatException('Unexpected response for getOrder');
   }
 
   Future<OrderModel> placeOrder({
@@ -78,8 +81,11 @@ class CustomerOrderService {
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return OrderModel.fromJson(decoded);
+    final raw = jsonDecode(response.body);
+    if (raw is Map<String, dynamic>) {
+      return OrderModel.fromJson(raw);
+    }
+    throw const FormatException('Unexpected response for placeOrder');
   }
 
   String? _extractMessage(http.Response response) {

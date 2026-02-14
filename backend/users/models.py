@@ -4,6 +4,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
+from django.db.models import Q
 
 from .managers import UserManager
 
@@ -52,6 +53,15 @@ class Address(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(is_default=True),
+                name="uniq_default_address_per_user",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"Address({self.id})"

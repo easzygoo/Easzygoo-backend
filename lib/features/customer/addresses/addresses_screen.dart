@@ -112,6 +112,7 @@ class _CustomerAddressesScreenState extends State<CustomerAddressesScreen> {
         builder: (context, _) {
           final items = _controller.items;
           final error = _controller.error;
+          final isLoading = _controller.isLoading;
 
           Widget buildList() {
             if ((error != null && error.isNotEmpty) && items.isEmpty) {
@@ -129,6 +130,22 @@ class _CustomerAddressesScreenState extends State<CustomerAddressesScreen> {
             }
 
             if (items.isEmpty) {
+              if (isLoading) {
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 120),
+                    Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    ),
+                  ],
+                );
+              }
               return ListView(
                 padding: const EdgeInsets.all(16),
                 physics: const AlwaysScrollableScrollPhysics(),

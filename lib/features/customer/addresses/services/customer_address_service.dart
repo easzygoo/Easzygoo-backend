@@ -47,8 +47,11 @@ class CustomerAddressService {
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return CustomerAddress.fromJson(decoded);
+    final raw = jsonDecode(response.body);
+    if (raw is Map<String, dynamic>) {
+      return CustomerAddress.fromJson(raw);
+    }
+    throw const FormatException('Unexpected response for createAddress');
   }
 
   Future<CustomerAddress> updateAddress({
@@ -68,8 +71,11 @@ class CustomerAddressService {
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return CustomerAddress.fromJson(decoded);
+    final raw = jsonDecode(response.body);
+    if (raw is Map<String, dynamic>) {
+      return CustomerAddress.fromJson(raw);
+    }
+    throw const FormatException('Unexpected response for updateAddress');
   }
 
   Future<void> deleteAddress(int id) async {
@@ -99,8 +105,11 @@ class CustomerAddressService {
       );
     }
 
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return CustomerAddress.fromJson(decoded);
+    final raw = jsonDecode(response.body);
+    if (raw is Map<String, dynamic>) {
+      return CustomerAddress.fromJson(raw);
+    }
+    throw const FormatException('Unexpected response for setDefault');
   }
 
   String? _extractMessage(http.Response response) {

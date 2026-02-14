@@ -12,23 +12,34 @@ class OrdersController extends ChangeNotifier {
   bool _loading = false;
   String? _error;
   List<OrderModel> _items = const [];
+  bool _disposed = false;
 
   bool get isLoading => _loading;
   String? get error => _error;
   List<OrderModel> get orders => _items;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   Future<void> load() async {
     if (_loading) return;
 
     _loading = true;
     _error = null;
-    notifyListeners();
+    if (!_disposed) notifyListeners();
 
     try {
-      _items = await _orders.listOrders();
+      final items = await _orders.listOrders();
+      if (_disposed) return;
+      _items = items;
     } catch (e) {
+      if (_disposed) return;
       _error = e.toString();
     } finally {
+      if (_disposed) return;
       _loading = false;
       notifyListeners();
     }

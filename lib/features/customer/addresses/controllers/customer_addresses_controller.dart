@@ -35,12 +35,24 @@ class CustomerAddressesController extends ChangeNotifier {
   }
 
   Future<void> delete(int id) async {
-    await _addresses.deleteAddress(id);
-    await load();
+    try {
+      await _addresses.deleteAddress(id);
+      await load();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> makeDefault(int id) async {
-    await _addresses.setDefault(id);
-    await load();
+    try {
+      await _addresses.setDefault(id);
+      await load();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
   }
 }

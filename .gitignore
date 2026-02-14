@@ -22,7 +22,7 @@ venv/
 *.ipr
 *.iws
 .idea/
-#.vscode/
+.vscode/
 
 # OS
 .DS_Store

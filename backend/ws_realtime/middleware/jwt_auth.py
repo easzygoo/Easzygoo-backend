@@ -9,6 +9,7 @@ from asgiref.sync import sync_to_async
 from channels.exceptions import DenyConnection
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
 logger = logging.getLogger("realtime")
@@ -82,7 +83,7 @@ async def _authenticate_scope(scope) -> JwtScopeAuthResult:
     try:
         validated = await sync_to_async(jwt_auth.get_validated_token)(token)
         user = await sync_to_async(jwt_auth.get_user)(validated)
-    except Exception as e:
+    except (InvalidToken, TokenError) as e:
         # Spec: reject invalid tokens (but allow missing token to proceed as anonymous).
         logger.info(
             "ws_invalid_token",

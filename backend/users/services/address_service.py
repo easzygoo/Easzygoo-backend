@@ -17,13 +17,17 @@ def get_address(*, user: User, address_id: int) -> Address:
 def create_address(*, user: User, **fields) -> Address:
     is_default = bool(fields.pop("is_default", False))
 
+    # Lock this user's addresses to prevent concurrent default races.
+    qs = Address.objects.select_for_update().filter(user=user)
+    had_existing = qs.exists()
+
     if is_default:
-        Address.objects.filter(user=user, is_default=True).update(is_default=False)
+        qs.filter(is_default=True).update(is_default=False)
 
     address = Address.objects.create(user=user, is_default=is_default, **fields)
 
     # If it's the first address, make it default.
-    if not Address.objects.filter(user=user).exclude(id=address.id).exists():
+    if not had_existing:
         if not address.is_default:
             address.is_default = True
             address.save(update_fields=["is_default"])
@@ -33,17 +37,40 @@ def create_address(*, user: User, **fields) -> Address:
 
 @transaction.atomic
 def update_address(*, user: User, address_id: int, **fields) -> Address:
-    address = get_address(user=user, address_id=address_id)
+    address = Address.objects.select_for_update().get(user=user, id=address_id)
 
     is_default = fields.pop("is_default", None)
 
-    for k, v in fields.items():
-        setattr(address, k, v)
+    allowed_fields = {
+        "label",
+        "receiver_name",
+        "receiver_phone",
+        "line1",
+        "line2",
+        "landmark",
+        "city",
+        "state",
+        "pincode",
+    }
 
-    address.save()
+    update_fields: list[str] = []
+
+    for k, v in fields.items():
+        if k not in allowed_fields:
+            continue
+        setattr(address, k, v)
+        update_fields.append(k)
+
+    if update_fields:
+        address.save(update_fields=update_fields)
 
     if is_default is True:
         set_default_address(user=user, address_id=address.id)
+        address.refresh_from_db()
+    elif is_default is False:
+        if address.is_default:
+            address.is_default = False
+            address.save(update_fields=["is_default"])
         address.refresh_from_db()
 
     return address

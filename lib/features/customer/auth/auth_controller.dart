@@ -15,18 +15,33 @@ class AuthController extends ChangeNotifier {
 
   AuthStatus _status = AuthStatus.splash;
   bool _busy = false;
+  Object? _bootError;
 
   AuthStatus get status => _status;
   bool get isBusy => _busy;
+  Object? get bootError => _bootError;
 
   Future<void> boot() async {
     _setBusy(true);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    final token = await _authService.getStoredToken();
-    _status = (token != null && token.isNotEmpty)
-        ? AuthStatus.authenticated
-        : AuthStatus.unauthenticated;
-    _setBusy(false);
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      final token = await _authService.getStoredToken();
+      _status = (token != null && token.isNotEmpty)
+          ? AuthStatus.authenticated
+          : AuthStatus.unauthenticated;
+      _bootError = null;
+    } catch (e) {
+      _bootError = e;
+      _status = AuthStatus.unauthenticated;
+    } finally {
+      _setBusy(false);
+    }
+  }
+
+  void setBootError(Object error) {
+    _bootError = error;
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
   }
 
   Future<String?> login({required String phone, required String otp}) async {
@@ -51,7 +66,14 @@ class AuthController extends ChangeNotifier {
     if (_busy) return;
     _setBusy(true);
     try {
-      await _authService.logout();
+      try {
+        await _authService.logout();
+      } catch (e) {
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        rethrow;
+      }
+
       _status = AuthStatus.unauthenticated;
       notifyListeners();
     } finally {

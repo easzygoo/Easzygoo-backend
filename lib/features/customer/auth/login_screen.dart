@@ -40,7 +40,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       _otpSent = true;
     });
 
-    FocusScope.of(context).requestFocus(FocusNode());
+    FocusScope.of(context).unfocus();
   }
 
   Future<void> _verifyOtp() async {

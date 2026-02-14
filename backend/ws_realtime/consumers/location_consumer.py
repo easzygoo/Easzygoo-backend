@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import uuid
 import time
 from typing import Any
 
 import logging
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.utils import timezone
+from asgiref.sync import sync_to_async
+
+from orders.models import Order
 
 
 logger = logging.getLogger("realtime")
@@ -26,6 +30,7 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._last_emit_at: float | None = None
+        self._user_id: str | None = None
 
     async def connect(self):
         user = self.scope.get("user")
@@ -37,6 +42,8 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
         if getattr(user, "role", None) != "rider":
             await self.close(code=4403)  # Forbidden
             return
+
+        self._user_id = str(getattr(user, "id", ""))
 
         await self.accept()
 
@@ -61,6 +68,23 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
         if not order_id:
             return
 
+        # Validate/sanitize order_id (must be UUID).
+        try:
+            order_uuid = uuid.UUID(order_id)
+        except Exception:
+            return
+
+        # Authorize: only the assigned rider can publish location for this order.
+        user_id = self._user_id
+        if not user_id:
+            return
+
+        is_assigned = await sync_to_async(
+            lambda: Order.objects.filter(id=order_uuid, rider__user_id=user_id).exists()
+        )()
+        if not is_assigned:
+            return
+
         lat = content.get("lat")
         lng = content.get("lng")
 
@@ -78,13 +102,13 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
         user = self.scope.get("user")
         rider_id = str(getattr(user, "id", ""))
 
-        group_name = f"order_{order_id}"
+        group_name = f"order_{str(order_uuid)}"
 
         await self.channel_layer.group_send(
             group_name,
             {
                 "type": "location.update",
-                "order_id": order_id,
+                "order_id": str(order_uuid),
                 "lat": lat_f,
                 "lng": lng_f,
                 "rider_id": rider_id,

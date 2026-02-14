@@ -29,7 +29,7 @@ class CustomerApp extends StatelessWidget {
         final mediaQuery = MediaQuery.of(context);
         final clamped = mediaQuery.textScaler.clamp(
           minScaleFactor: 0.9,
-          maxScaleFactor: 1.15,
+          maxScaleFactor: 2.0,
         );
         return MediaQuery(
           data: mediaQuery.copyWith(textScaler: clamped),
@@ -58,7 +58,13 @@ class _CustomerRootState extends State<_CustomerRoot> {
   void initState() {
     super.initState();
     _auth = AuthController(authService: widget.authService);
-    unawaited(_auth.boot());
+    unawaited(() async {
+      try {
+        await _auth.boot().timeout(const Duration(seconds: 8));
+      } catch (e) {
+        _auth.setBootError(e);
+      }
+    }());
   }
 
   @override

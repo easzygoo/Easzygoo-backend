@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/network/api_client.dart';
 import 'controllers/orders_controller.dart';
@@ -91,6 +92,12 @@ class CustomerOrdersTabState extends State<CustomerOrdersTab> {
             separatorBuilder: (_, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final o = orders[index];
+              final locale = Localizations.localeOf(context).toString();
+              final money = NumberFormat.simpleCurrency(locale: locale);
+              final createdAt = DateTime.tryParse(o.createdAt);
+              final createdText = createdAt == null
+                  ? o.createdAt
+                  : DateFormat.yMMMd(locale).format(createdAt.toLocal());
               return Card(
                 child: ListTile(
                   title: Text(o.vendorName.isEmpty ? 'Order' : o.vendorName),
@@ -109,9 +116,9 @@ class CustomerOrdersTabState extends State<CustomerOrdersTab> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('₹${o.totalAmount.toStringAsFixed(2)}'),
+                      Text(money.format(o.totalAmount)),
                       Text(
-                        o.createdAt,
+                        createdText,
                         style: Theme.of(context).textTheme.bodySmall,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

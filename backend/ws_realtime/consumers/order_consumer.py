@@ -19,7 +19,7 @@ class OrderConsumer(AsyncJsonWebsocketConsumer):
     - joins `order_<order_id>` group
     - forwards group events to client
 
-    Ownership/role enforcement is added in a later stage.
+    Ownership/role authorization is enforced during connect() (see connect()).
     """
 
     async def connect(self):
@@ -39,7 +39,11 @@ class OrderConsumer(AsyncJsonWebsocketConsumer):
         # Ownership / role-based authorization (cache-first).
         try:
             access = await self._get_access(order_id)
-        except Exception:
+        except Exception as e:
+            logger.exception(
+                "ws_access_lookup_failed",
+                extra={"event": "ws_access_lookup_failed", "order_id": order_id},
+            )
             await self.close(code=4400)
             return
 

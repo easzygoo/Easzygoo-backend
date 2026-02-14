@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
@@ -190,6 +191,18 @@ else:
             "BACKEND": "channels.layers.InMemoryChannelLayer",
         }
     }
+
+_settings_logger = logging.getLogger(__name__)
+if CHANNEL_LAYERS.get("default", {}).get("BACKEND") == "channels.layers.InMemoryChannelLayer":
+    if not DEBUG and not REDIS_URL:
+        raise RuntimeError(
+            "CHANNEL_LAYERS is configured with InMemoryChannelLayer, which is unsafe for multi-process "
+            "deployments. Set REDIS_URL (channels_redis) when DEBUG is False."
+        )
+    _settings_logger.warning(
+        "CHANNEL_LAYERS is using InMemoryChannelLayer; realtime features won't work across multiple workers.",
+        extra={"event": "channels_inmemory_warning"},
+    )
 
 
 # Cache (used to avoid DB hits in WebSocket consumers)

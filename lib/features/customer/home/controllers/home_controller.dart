@@ -106,7 +106,7 @@ class HomeController extends ChangeNotifier {
 
     _cartVendorId ??= product.vendorId;
     final current = _cartQtyByProductId[product.id] ?? 0;
-    if (product.stock > 0 && current >= product.stock) {
+    if (product.stock <= 0 || current >= product.stock) {
       return 'Out of stock';
     }
 

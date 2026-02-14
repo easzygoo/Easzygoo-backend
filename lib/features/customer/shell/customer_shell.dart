@@ -31,7 +31,8 @@ class _CustomerShellState extends State<CustomerShell> {
     final body = switch (_index) {
       0 => CustomerHomeTab(apiClient: widget.apiClient),
       1 => CustomerOrdersTab(key: _ordersKey, apiClient: widget.apiClient),
-      _ => CustomerProfileTab(apiClient: widget.apiClient, onLogout: widget.onLogout),
+      2 => CustomerProfileTab(apiClient: widget.apiClient, onLogout: widget.onLogout),
+      _ => throw StateError('Invalid tab index: $_index'),
     };
 
     return Scaffold(
@@ -39,7 +40,8 @@ class _CustomerShellState extends State<CustomerShell> {
         title: Text(switch (_index) {
           0 => 'Home',
           1 => 'Orders',
-          _ => 'Profile',
+          2 => 'Profile',
+          _ => throw StateError('Invalid tab index: $_index'),
         }),
       ),
       body: body,

@@ -25,6 +25,13 @@ class CustomerProduct {
     return 0.0;
   }
 
+  static int _toInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? 0;
+    return 0;
+  }
+
   factory CustomerProduct.fromJson(Map<String, dynamic> json) {
     return CustomerProduct(
       id: (json['id'] ?? '').toString(),
@@ -33,10 +40,7 @@ class CustomerProduct {
       name: (json['name'] ?? '').toString(),
       description: (json['description'] ?? '').toString(),
       price: _toDouble(json['price']),
-      stock:
-          (json['stock'] as num?)?.toInt() ??
-          int.tryParse('${json['stock'] ?? 0}') ??
-          0,
+      stock: _toInt(json['stock']),
       isActive: (json['is_active'] as bool?) ?? false,
     );
   }

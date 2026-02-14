@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
+import logging
 
 from django.db import transaction
 
@@ -14,6 +15,9 @@ from vendors.models import Vendor
 
 from .rider_assignment_service import assign_rider_to_order
 from .order_access_service import cache_order_access_from_instance
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -103,6 +107,12 @@ def place_order_for_customer(
     # Cache access metadata for websocket authorization (cache-first; avoids consumer DB hits).
     # Ensure vendor.user is available (Vendor instance is already present here).
     order.vendor = vendor
-    cache_order_access_from_instance(order=order)
+    try:
+        cache_order_access_from_instance(order=order)
+    except Exception:
+        logger.exception(
+            "cache_order_access_failed",
+            extra={"event": "cache_order_access_failed", "order_id": str(order.id), "vendor_id": str(vendor.id)},
+        )
 
     return order

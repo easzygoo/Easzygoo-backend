@@ -8,12 +8,13 @@ import os
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-from ws_realtime.middleware.jwt_auth import JwtAuthMiddlewareStack
-from ws_realtime.routing import websocket_urlpatterns
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 django_asgi_app = get_asgi_application()
+
+# IMPORTANT: Import ws_realtime only after Django is initialized.
+from ws_realtime.middleware.jwt_auth import JwtAuthMiddlewareStack  # noqa: E402
+from ws_realtime.routing import websocket_urlpatterns  # noqa: E402
 
 application = ProtocolTypeRouter(
 	{

@@ -39,18 +39,29 @@ def accept_order(*, rider: Rider, order: Order) -> Order:
     order.status = Order.Status.ACCEPTED
     order.save(update_fields=["rider", "status", "updated_at"])
 
-    # Ensure order.rider.user is available for caching.
-    order.rider = rider
-    cache_order_access_from_instance(order=order)
+    order_id = str(order.id)
+    rider_id = str(rider.id)
+    status_value = order.status
 
-    emit_order_event(
-        order_id=str(order.id),
-        name="order_accepted",
-        payload={
-            "status": order.status,
-            "rider_id": str(rider.id),
-        },
-    )
+    def _after_commit() -> None:
+        try:
+            # Ensure rider relation is present for caching.
+            order.rider = rider
+            cache_order_access_from_instance(order=order)
+        except Exception:
+            # Cache failures must not break the request.
+            pass
+
+        emit_order_event(
+            order_id=order_id,
+            name="order_accepted",
+            payload={
+                "status": status_value,
+                "rider_id": rider_id,
+            },
+        )
+
+    transaction.on_commit(_after_commit)
     return order
 
 
@@ -64,17 +75,27 @@ def mark_picked(*, rider: Rider, order: Order) -> Order:
     order.status = Order.Status.PICKED
     order.save(update_fields=["status", "updated_at"])
 
-    order.rider = rider
-    cache_order_access_from_instance(order=order)
+    order_id = str(order.id)
+    rider_id = str(rider.id)
+    status_value = order.status
 
-    emit_order_event(
-        order_id=str(order.id),
-        name="order_picked",
-        payload={
-            "status": order.status,
-            "rider_id": str(rider.id),
-        },
-    )
+    def _after_commit() -> None:
+        try:
+            order.rider = rider
+            cache_order_access_from_instance(order=order)
+        except Exception:
+            pass
+
+        emit_order_event(
+            order_id=order_id,
+            name="order_picked",
+            payload={
+                "status": status_value,
+                "rider_id": rider_id,
+            },
+        )
+
+    transaction.on_commit(_after_commit)
     return order
 
 
@@ -88,17 +109,27 @@ def mark_delivered(*, rider: Rider, order: Order) -> Order:
     order.status = Order.Status.DELIVERED
     order.save(update_fields=["status", "updated_at"])
 
-    order.rider = rider
-    cache_order_access_from_instance(order=order)
+    order_id = str(order.id)
+    rider_id = str(rider.id)
+    status_value = order.status
 
-    emit_order_event(
-        order_id=str(order.id),
-        name="order_delivered",
-        payload={
-            "status": order.status,
-            "rider_id": str(rider.id),
-        },
-    )
+    def _after_commit() -> None:
+        try:
+            order.rider = rider
+            cache_order_access_from_instance(order=order)
+        except Exception:
+            pass
+
+        emit_order_event(
+            order_id=order_id,
+            name="order_delivered",
+            payload={
+                "status": status_value,
+                "rider_id": rider_id,
+            },
+        )
+
+    transaction.on_commit(_after_commit)
     return order
 
 

@@ -14,8 +14,12 @@ class CustomerMe {
   });
 
   factory CustomerMe.fromJson(Map<String, dynamic> json) {
+    final id = (json['id'] ?? '').toString().trim();
+    if (id.isEmpty) {
+      throw StateError('CustomerMe.fromJson: missing id');
+    }
     return CustomerMe(
-      id: (json['id'] ?? '').toString(),
+      id: id,
       name: (json['name'] ?? '').toString(),
       phone: (json['phone'] ?? '').toString(),
       role: (json['role'] ?? '').toString(),

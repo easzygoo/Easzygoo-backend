@@ -21,6 +21,7 @@ def _check_redis() -> tuple[bool, str | None]:
         # If Redis isn't configured, readiness only depends on DB.
         return True, None
 
+    client = None
     try:
         import redis  # type: ignore
 
@@ -29,6 +30,13 @@ def _check_redis() -> tuple[bool, str | None]:
         return True, None
     except Exception as e:
         return False, str(e)
+    finally:
+        try:
+            if client is not None:
+                client.close()
+        except Exception:
+            # Readiness check should never fail due to close issues.
+            pass
 
 
 def readycheck(_request):
