@@ -194,10 +194,15 @@ else:
 
 _settings_logger = logging.getLogger(__name__)
 if CHANNEL_LAYERS.get("default", {}).get("BACKEND") == "channels.layers.InMemoryChannelLayer":
-    if not DEBUG and not REDIS_URL:
+    # InMemoryChannelLayer is fine for local dev and single-worker demos, but unsafe
+    # for multi-worker deployments. Require an explicit opt-in if DEBUG is False.
+    ALLOW_INMEMORY_CHANNEL_LAYER = _env_bool("ALLOW_INMEMORY_CHANNEL_LAYER", default=False)
+
+    if not DEBUG and not REDIS_URL and not ALLOW_INMEMORY_CHANNEL_LAYER:
         raise RuntimeError(
             "CHANNEL_LAYERS is configured with InMemoryChannelLayer, which is unsafe for multi-process "
-            "deployments. Set REDIS_URL (channels_redis) when DEBUG is False."
+            "deployments. Set REDIS_URL (channels_redis) when DEBUG is False, or set "
+            "ALLOW_INMEMORY_CHANNEL_LAYER=1 for single-worker demo environments."
         )
     _settings_logger.warning(
         "CHANNEL_LAYERS is using InMemoryChannelLayer; realtime features won't work across multiple workers.",
