@@ -10,5 +10,13 @@ dist
 # Secrets / service accounts
 *firebase-adminsdk*.json
 *-service-account*.json
-google-services.json
-GoogleService-Info.plist
+
+# Firebase CLIENT config is deliberately TRACKED, not ignored. These are not
+# secrets (they ship inside the app binary), and EAS builds need them present
+# in the repo. Explicit un-ignore so a broader pattern can't re-exclude them.
+!google-services.json
+!GoogleService-Info.plist
+
+# Expo prebuild output (managed/CNG — regenerated from app.json by expo/EAS)
+apps/*/android/
+apps/*/ios/
