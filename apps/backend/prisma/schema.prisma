@@ -1,0 +1,333 @@
+// EaszyGoo — Prisma schema
+// Phase 1 priority: User, Address, Vendor, Rider, Category, Product (auth + catalog CRUD).
+// Order, Payment, Payout, Coupon, Rating are modeled now so relations are correct from the
+// start, but their business logic lands in Phase 2 (payments) and Phase 3 (core commerce).
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  RIDER
+  ADMIN
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum RiderStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum ProductUnit {
+  GRAM
+  KILOGRAM
+  PIECE
+  BUNCH
+}
+
+enum OrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+// ---------- Phase 1: Auth ----------
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  firebaseUid String   @unique
+  role        Role
+  name        String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  addresses    Address[]
+  vendor       Vendor?
+  rider        Rider?
+  orders       Order[]  @relation("CustomerOrders")
+  ratingsGiven Rating[] @relation("RatingsGiven")
+  pushTokens   PushToken[]
+
+  @@index([role])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String? // "Home", "Work"
+  line1     String
+  line2     String?
+  city      String
+  pincode   String
+  latitude  Float
+  longitude Float
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@index([pincode])
+}
+
+// One row per device. A user can have several (multiple devices, reinstalls),
+// so tokens live in their own table rather than as a field on User.
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String? // "ios" | "android"
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------- Phase 1: Vendor & Rider profiles ----------
+
+model Vendor {
+  id                     String       @id @default(cuid())
+  userId                 String       @unique
+  storeName              String
+  latitude               Float
+  longitude              Float
+  address                String
+  pincode                String
+  deliveryRadiusKm       Float        @default(3)
+  openTime               String? // "09:00"
+  closeTime              String? // "21:00"
+  isOpen                 Boolean      @default(true)
+  status                 VendorStatus @default(PENDING)
+  bankAccountNumber      String?
+  bankIfsc               String?
+  cashfreeBeneficiaryId  String?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+  orders   Order[]
+  ratings  Rating[]  @relation("VendorRatings")
+
+  @@index([pincode])
+  @@index([status])
+}
+
+model Rider {
+  id                    String      @id @default(cuid())
+  userId                String      @unique
+  vehicleType           String? // "bike", "cycle"
+  vehicleNumber         String?
+  idProofUrl            String?
+  status                RiderStatus @default(PENDING)
+  isAvailable           Boolean     @default(false)
+  currentLat            Float?
+  currentLng            Float?
+  bankAccountNumber     String?
+  bankIfsc              String?
+  cashfreeBeneficiaryId String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders  Order[]
+  ratings Rating[] @relation("RiderRatings")
+
+  @@index([status])
+  @@index([isAvailable])
+}
+
+// ---------- Phase 1: Catalog ----------
+
+model Category {
+  id        String @id @default(cuid())
+  name      String @unique
+  imageUrl  String?
+  sortOrder Int    @default(0)
+
+  products Product[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  vendorId    String
+  categoryId  String
+  name        String
+  description String?
+  imageUrl    String?
+  unit        ProductUnit
+  unitValue   Float // e.g. 250 for 250g, 1 for 1kg
+  price       Decimal     @db.Decimal(10, 2)
+  stockQty    Int         @default(0)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  vendor     Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+// ---------- Phase 2/3: Orders, payments, payouts, coupons, ratings ----------
+// Modeled now for correct relations; business logic and endpoints land later.
+
+model Order {
+  id           String      @id @default(cuid())
+  customerId   String
+  vendorId     String
+  riderId      String?
+  addressId    String
+  status       OrderStatus @default(PLACED)
+  subtotal     Decimal     @db.Decimal(10, 2)
+  deliveryFee  Decimal     @db.Decimal(10, 2) @default(0)
+  discount     Decimal     @db.Decimal(10, 2) @default(0)
+  total        Decimal     @db.Decimal(10, 2)
+  couponCode   String?
+  placedAt     DateTime    @default(now())
+  deliveredAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  customer User    @relation("CustomerOrders", fields: [customerId], references: [id])
+  vendor   Vendor  @relation(fields: [vendorId], references: [id])
+  rider    Rider?  @relation(fields: [riderId], references: [id])
+  address  Address @relation(fields: [addressId], references: [id])
+  items    OrderItem[]
+  payment  Payment?
+  ratings  Rating[]
+
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([riderId])
+  @@index([status])
+  @@index([placedAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2) // price at time of order, not live product price
+  lineTotal Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String        @unique
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?
+  status            PaymentStatus @default(PENDING)
+  amount            Decimal       @db.Decimal(10, 2)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([status])
+}
+
+model Payout {
+  id                 String       @id @default(cuid())
+  vendorId           String?
+  riderId            String?
+  amount             Decimal      @db.Decimal(10, 2)
+  status             PayoutStatus @default(PENDING)
+  cashfreeTransferId String?
+  createdAt          DateTime     @default(now())
+  processedAt        DateTime?
+
+  @@index([vendorId])
+  @@index([riderId])
+  @@index([status])
+}
+
+model Coupon {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  discountType  String // "FLAT" | "PERCENT"
+  discountValue Decimal  @db.Decimal(10, 2)
+  minOrderValue Decimal? @db.Decimal(10, 2)
+  maxUses       Int?
+  usedCount     Int      @default(0)
+  validFrom     DateTime
+  validUntil    DateTime
+  isActive      Boolean  @default(true)
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  orderId     String
+  customerId  String
+  vendorId    String?
+  riderId     String?
+  vendorStars Int?
+  riderStars  Int?
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  order    Order   @relation(fields: [orderId], references: [id])
+  customer User    @relation("RatingsGiven", fields: [customerId], references: [id])
+  vendor   Vendor? @relation("VendorRatings", fields: [vendorId], references: [id])
+  rider    Rider?  @relation("RiderRatings", fields: [riderId], references: [id])
+
+  @@unique([orderId, customerId])
+  @@index([vendorId])
+  @@index([riderId])
+}
+
+model ServiceZone {
+  id              String  @id @default(cuid())
+  pincode         String  @unique
+  isActive        Boolean @default(true)
+  baseDeliveryFee Decimal @db.Decimal(10, 2) @default(0)
+}

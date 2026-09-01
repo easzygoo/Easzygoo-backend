@@ -1,0 +1,14 @@
+node_modules
+dist
+.next
+.expo
+.env
+.env.local
+*.log
+.turbo
+
+# Secrets / service accounts
+*firebase-adminsdk*.json
+*-service-account*.json
+google-services.json
+GoogleService-Info.plist

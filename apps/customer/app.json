@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "EaszyGoo Customer",
+    "slug": "easzygoo-customer",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "462f45fd-8442-4552-a0a6-a2f027b46e41"
+      }
+    }
+  }
+}

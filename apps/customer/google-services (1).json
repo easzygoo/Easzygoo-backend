@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "655694635217",
+    "project_id": "easzygoo-1768d",
+    "storage_bucket": "easzygoo-1768d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655694635217:android:dbdaa27ef198c4403125f0",
+        "android_client_info": {
+          "package_name": "com.easzygoo.rider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr1e1-vDNnrRG91Cmyk5CCFelYNxQUMDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655694635217:android:2d4879fbf89bf54a3125f0",
+        "android_client_info": {
+          "package_name": "com.easzygoo.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr1e1-vDNnrRG91Cmyk5CCFelYNxQUMDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655694635217:android:a59f8cb8e5c0d5173125f0",
+        "android_client_info": {
+          "package_name": "com.easzygoo.vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr1e1-vDNnrRG91Cmyk5CCFelYNxQUMDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
