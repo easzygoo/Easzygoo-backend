@@ -8,6 +8,18 @@
       "ios",
       "android"
     ],
+    "android": {
+      "package": "com.easzygoo.user",
+      "googleServicesFile": "./google-services.json"
+    },
+    "ios": {
+      "bundleIdentifier": "com.easzygoo.user",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
+    ],
     "extra": {
       "eas": {
         "projectId": "462f45fd-8442-4552-a0a6-a2f027b46e41"
